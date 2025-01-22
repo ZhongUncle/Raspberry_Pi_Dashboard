@@ -128,13 +128,14 @@ func GetCPUUsage() float64 {
 }
 
 // 获取当前 CPU 温度
-func GetCPUTemp() string {
+func GetCPUTemp() float64 {
 	cmd := exec.Command("vcgencmd", "measure_temp")
 	stdout, err := cmd.Output()
 	if err != nil {
 		fmt.Println(err.Error())
-		return ""
+		return -1.0
 	}
 	tempStr := string(stdout)
-	return tempStr[4:9]
+	temp, _ := strconv.ParseFloat(tempStr[5:9], 64)
+	return temp
 }
