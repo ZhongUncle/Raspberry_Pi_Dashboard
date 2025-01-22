@@ -135,6 +135,6 @@ func GetCPUTemp() string {
 		fmt.Println(err.Error())
 		return ""
 	}
-	fmt.Println(string(stdout))
-	return string(stdout)
+	tempStr := string(stdout)
+	return tempStr[4:9]
 }
