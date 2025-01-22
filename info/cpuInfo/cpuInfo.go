@@ -102,12 +102,13 @@ func CalculateCPUUsage(prevStat, currStat CPUStat) float64 {
 }
 
 // 外部使用的函数首字母必须大写，不然认为不能公开使用
-func GetCPUUsage() {
+// 获取当前CPU利用率
+func GetCPUUsage() (float64) {
 	// 第一次读取CPU统计信息
 	prevStat, err := ReadCPUStat()
 	if err != nil {
 		fmt.Printf("Error reading CPU stats: %v\n", err)
-		return
+		return -1.0
 	}
 
 	// 等待一段时间（例如1秒）
@@ -117,10 +118,15 @@ func GetCPUUsage() {
 	currStat, err := ReadCPUStat()
 	if err != nil {
 		fmt.Printf("Error reading CPU stats: %v\n", err)
-		return
+		return -1.0
 	}
 
 	// 计算CPU使用率
 	cpuUsage := CalculateCPUUsage(prevStat, currStat)
-	fmt.Printf("CPU Usage: %.2f%%\n", cpuUsage)
+	return cpuUsage
+}
+
+// 获取当前 CPU 温度
+func GetCPUTemp() {
+
 }

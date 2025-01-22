@@ -1,11 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"info/cpuInfo"
 )
 
 func main() {
 	for {
-		cpuInfo.GetCPUUsage()
+		fmt.Printf("CPU Usage: %.2f%%\n", cpuInfo.GetCPUUsage())
 	}
 }
