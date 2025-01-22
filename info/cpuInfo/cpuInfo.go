@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -103,7 +104,7 @@ func CalculateCPUUsage(prevStat, currStat CPUStat) float64 {
 
 // 外部使用的函数首字母必须大写，不然认为不能公开使用
 // 获取当前CPU利用率
-func GetCPUUsage() (float64) {
+func GetCPUUsage() float64 {
 	// 第一次读取CPU统计信息
 	prevStat, err := ReadCPUStat()
 	if err != nil {
@@ -127,6 +128,13 @@ func GetCPUUsage() (float64) {
 }
 
 // 获取当前 CPU 温度
-func GetCPUTemp() {
-
+func GetCPUTemp() string {
+	cmd := exec.Command("vcgencmd", "measure_temp")
+	stdout, err := cmd.Output()
+	if err != nil {
+		fmt.Println(err.Error())
+		return ""
+	}
+	fmt.Println(string(stdout))
+	return string(stdout)
 }
