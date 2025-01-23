@@ -103,7 +103,7 @@ func readMemInfo(filePath string) (*MemoryInfo, error) {
 	return memInfo, nil
 }
 
-// 单位是KB
+// 单位是GB
 func GetMemInfo() (float64, float64) {
 	memInfo, err := readMemInfo("/proc/meminfo")
 	if err != nil {
