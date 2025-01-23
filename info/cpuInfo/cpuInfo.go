@@ -139,3 +139,85 @@ func GetCPUTemp() float64 {
 	temp, _ := strconv.ParseFloat(tempStr[5:9], 64)
 	return temp
 }
+
+// 获取当前CPU Package频率
+func GetPackageCPUFreq() float64 {
+	cmd := exec.Command("sudo", "cat", "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq")
+	stdout, err := cmd.Output()
+	if err != nil {
+		fmt.Println(err.Error())
+		return -1.0
+	}
+	freq := 0
+	str := string(stdout)
+	for i := 0; i < len(stdout)-1; i++ {
+		freq = freq*10 + (int(str[i]) - '0')
+	}
+
+	return float64(freq) / 1e6
+}
+
+// 获取当前每个CPU核心的频率
+func GetCoresCPUFreq() []float64 {
+	freqArr := make([]float64, 4)
+	for i := 0; i < 4; i++ {
+		cmd := exec.Command("sudo", "cat", "/sys/devices/system/cpu/cpu"+i+"/cpufreq/cpuinfo_cur_freq")
+		stdout, err := cmd.Output()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		freq := 0
+		str := string(stdout)
+		for i := 0; i < len(stdout)-1; i++ {
+			freq = freq*10 + (int(str[i]) - '0')
+		}
+		freqArr[i] = freq
+	}
+
+	return float64(freqArr) / 1e6
+}
+
+// 获取当前CPU频率
+func GetCPUFreq() float64 {
+	cmd := exec.Command("sudo", "cat", "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq")
+	stdout, err := cmd.Output()
+	if err != nil {
+		fmt.Println(err.Error())
+		return -1.0
+	}
+	freq := 0
+	str := string(stdout)
+	for i := 0; i < len(stdout)-1; i++ {
+		freq = freq*10 + (int(str[i]) - '0')
+	}
+
+	return float64(freq) / 1e6
+
+}
+
+// 获取CPU信息（返回值依次是CPU利用率、温度、频率）
+func GetCPUInfo() (float64, float64, float64) {
+	cpuTmep := GetCPUTemp()
+	cpuFreq := GetCPUFreq()
+
+	// 频率放在这里是好处理一秒间隔
+	// 第一次读取CPU统计信息
+	prevStat, err := ReadCPUStat()
+	if err != nil {
+		fmt.Printf("Error reading CPU stats: %v\n", err)
+	}
+
+	// 等待一段时间（例如1秒）
+	time.Sleep(1 * time.Second)
+
+	// 第二次读取CPU统计信息
+	currStat, err := ReadCPUStat()
+	if err != nil {
+		fmt.Printf("Error reading CPU stats: %v\n", err)
+	}
+
+	// 计算CPU使用率
+	cpuUsage := CalculateCPUUsage(prevStat, currStat)
+
+	return cpuUsage, cpuTmep, cpuFreq
+}

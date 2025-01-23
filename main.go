@@ -7,7 +7,9 @@ import (
 
 func main() {
 	for {
-		fmt.Printf("CPU Usage: %.2f %%\n", cpuInfo.GetCPUUsage())
-		fmt.Printf("CPU Temp: %.2f 'C\n", cpuInfo.GetCPUTemp())
+		cpuUsage, cpuTmep, cpuFreq := cpuInfo.GetCPUInfo()
+		fmt.Printf("CPU Usage: %.2f%%\n", cpuUsage)
+		fmt.Printf("CPU Temp: %.2f\n", cpuTmep)
+		fmt.Printf("CPU Freq: %.2f\n", cpuFreq)
 	}
 }
