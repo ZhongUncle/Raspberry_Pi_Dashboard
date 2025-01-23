@@ -140,43 +140,6 @@ func GetCPUTemp() float64 {
 	return temp
 }
 
-// 获取当前CPU Package频率
-func GetPackageCPUFreq() float64 {
-	cmd := exec.Command("sudo", "cat", "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq")
-	stdout, err := cmd.Output()
-	if err != nil {
-		fmt.Println(err.Error())
-		return -1.0
-	}
-	freq := 0
-	str := string(stdout)
-	for i := 0; i < len(stdout)-1; i++ {
-		freq = freq*10 + (int(str[i]) - '0')
-	}
-
-	return float64(freq) / 1e6
-}
-
-// 获取当前每个CPU核心的频率
-func GetCoresCPUFreq() []float64 {
-	freqArr := make([]float64, 4)
-	for i := 0; i < 4; i++ {
-		cmd := exec.Command("sudo", "cat", "/sys/devices/system/cpu/cpu"+i+"/cpufreq/cpuinfo_cur_freq")
-		stdout, err := cmd.Output()
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		freq := 0
-		str := string(stdout)
-		for i := 0; i < len(stdout)-1; i++ {
-			freq = freq*10 + (int(str[i]) - '0')
-		}
-		freqArr[i] = freq
-	}
-
-	return float64(freqArr) / 1e6
-}
-
 // 获取当前CPU频率
 func GetCPUFreq() float64 {
 	cmd := exec.Command("sudo", "cat", "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq")
