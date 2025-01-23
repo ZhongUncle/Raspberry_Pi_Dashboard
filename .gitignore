@@ -1,4 +1,7 @@
 .DS_Store
+._README.md
+._*
+._.gitignore
 *.aux
 *.log
 *.gz

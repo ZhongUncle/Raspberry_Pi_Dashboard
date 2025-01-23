@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"info/cpuInfo"
+	"info/diskInfo"
 	"info/memInfo"
 )
 
 func main() {
 	for {
+		// 打印CPU信息
 		cpuUsage, cpuTmep, cpuFreq := cpuInfo.GetCPUInfo()
 		fmt.Printf("CPU Usage:\t%.2f%%,\t\t", cpuUsage)
 		fmt.Printf("CPU Temp:\t%.2f C,\t", cpuTmep)
@@ -16,5 +18,11 @@ func main() {
 		memTotal, memAvailable := memInfo.GetMemInfo()
 		fmt.Printf("MemTotal:\t%.2f GB,\t", memTotal)
 		fmt.Printf("MemAvailable:\t%.2f GB\n", memAvailable)
+		// 打印硬盘信息
+		diskSize, diskUsed, diskAvail, diskTemp := diskInfo.GetDiskInfo()
+		fmt.Printf("Disk Total:\t%d GB,\t\t", diskSize)
+		fmt.Printf("Disk Used:\t%d GB,\t\t", diskUsed)
+		fmt.Printf("Disk Avail:\t%d GB,\t\t", diskAvail)
+		fmt.Printf("Temperature:\t%d°C\n", diskTemp)
 	}
 }

@@ -7,3 +7,6 @@ replace info/cpuInfo => ./info/cpuInfo
 
 require info/memInfo v0.0.0
 replace info/memInfo => ./info/memInfo
+
+require info/diskInfo v0.0.0
+replace info/diskInfo => ./info/diskInfo
