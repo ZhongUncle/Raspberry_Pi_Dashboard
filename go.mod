@@ -13,3 +13,6 @@ replace info/diskInfo => ./info/diskInfo
 
 require info/netInfo v0.0.0
 replace info/netInfo => ./info/netInfo
+
+require info/sysInfo v0.0.0
+replace info/sysInfo => ./info/sysInfo

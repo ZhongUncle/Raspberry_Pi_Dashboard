@@ -6,9 +6,16 @@ import (
 	"info/diskInfo"
 	"info/memInfo"
 	"info/netInfo"
+	"info/sysInfo"
 )
 
 func main() {
+	model, osVersion, kernelVersion, systemTime := sysInfo.GetSysInfo()
+	fmt.Printf("Raspberry Pi Model:\t%s\n", model)
+	fmt.Printf("OS Version:\t\t%s\n", osVersion)
+	fmt.Printf("Kernel Version:\t\t%s\n", kernelVersion)
+	fmt.Printf("System Time:\t\t%s\n", systemTime)
+
 	hostname, netinfoes := netInfo.GetNetInfo()
 	fmt.Println("Hostname: " + hostname)
 	for _, netinfo := range netinfoes {
