@@ -103,12 +103,12 @@ func readMemInfo(filePath string) (*MemoryInfo, error) {
 	return memInfo, nil
 }
 
-// 单位是GB
+// 获取内存信息，返回值为（总量， 可使用）
 func GetMemInfo() (float64, float64) {
 	memInfo, err := readMemInfo("/proc/meminfo")
 	if err != nil {
 		fmt.Println("Error reading memory info:", err)
 	}
 
-	return float64(memInfo.MemTotal) / 1e6, float64(memInfo.MemAvailable) / 1e6
+	return float64(memInfo.MemTotal), float64(memInfo.MemAvailable)
 }

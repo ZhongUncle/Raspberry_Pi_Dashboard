@@ -54,6 +54,7 @@ func GetKernelVersion() (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
+// 获取系统信息，返回值为（树莓派型号，获取系统版本，获取内核版本，获取系统时间）
 func GetSysInfo() (string, string, string, string) {
 	// 获取树莓派型号
 	model, err := GetRaspberryPiModel()

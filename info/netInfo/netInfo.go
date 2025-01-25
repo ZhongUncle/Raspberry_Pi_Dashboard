@@ -104,13 +104,13 @@ func GetSomeSocketInfo(name string) InterfaceStats {
 	return stats[0]
 }
 
-// 获取当前网络收发情况，返回值为收、发，单位是 MB/s
+// 获取当前网络收发情况，返回值为收、发速度
 func GetNetTraffic(name string) (float64, float64) {
 	start := GetSomeSocketInfo(name)
 	time.Sleep(1 * time.Second)
 	end := GetSomeSocketInfo(name)
 
-	return float64(end.ReceiveBytes-start.ReceiveBytes) / 1e6, float64(end.TransmitBytes-start.TransmitBytes) / 1e6
+	return float64(end.ReceiveBytes-start.ReceiveBytes), float64(end.TransmitBytes-start.TransmitBytes)
 }
 
 // 定义结构体存储网络接口信息

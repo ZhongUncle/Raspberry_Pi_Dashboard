@@ -140,9 +140,43 @@ func GetCPUTemp() float64 {
 	return temp
 }
 
-// 获取当前CPU频率
-func GetCPUFreq() float64 {
-	cmd := exec.Command("sudo", "cat", "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq")
+// 获取CPU当前频率
+func GetCPUCurFreq() float64 {
+	cmd := exec.Command("sudo", "cat", "/sys/devices/system/cpu/cpufreq/policy0/cpuinfo_cur_freq")
+	stdout, err := cmd.Output()
+	if err != nil {
+		fmt.Println(err.Error())
+		return -1.0
+	}
+	freq := 0
+	str := string(stdout)
+	for i := 0; i < len(stdout)-1; i++ {
+		freq = freq*10 + (int(str[i]) - '0')
+	}
+
+	return float64(freq) / 1e6
+}
+
+// 获取CPU最大频率
+func GetCPUMaxFreq() float64 {
+	cmd := exec.Command("sudo", "cat", "/sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq")
+	stdout, err := cmd.Output()
+	if err != nil {
+		fmt.Println(err.Error())
+		return -1.0
+	}
+	freq := 0
+	str := string(stdout)
+	for i := 0; i < len(stdout)-1; i++ {
+		freq = freq*10 + (int(str[i]) - '0')
+	}
+
+	return float64(freq) / 1e6
+}
+
+// 获取CPU最小频率
+func GetCPUMinFreq() float64 {
+	cmd := exec.Command("sudo", "cat", "/sys/devices/system/cpu/cpufreq/policy0/cpuinfo_min_freq")
 	stdout, err := cmd.Output()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -158,10 +192,15 @@ func GetCPUFreq() float64 {
 
 }
 
-// 获取CPU信息（返回值依次是CPU利用率、温度、频率）
-func GetCPUInfo() (float64, float64, float64) {
+// 获取CPU的一些信息，返回值为（最大频率，最小频率）
+func GetCPUInfo() (float64, float64) {
+	return GetCPUMinFreq(), GetCPUMaxFreq()
+}
+
+// 获取CPU当前信息（返回值依次是CPU利用率、温度、频率）
+func GetCPUCurInfo() (float64, float64, float64) {
 	cpuTmep := GetCPUTemp()
-	cpuFreq := GetCPUFreq()
+	cpuFreq := GetCPUCurFreq()
 
 	// 频率放在这里是好处理一秒间隔
 	// 第一次读取CPU统计信息

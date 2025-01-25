@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>树莓派信息仪表盘</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .chart-title {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .disk-info {
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4">树莓派信息仪表盘</h1>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="chart-container">
+                    <div class="chart-title">系统信息</div>
+                    <div id="sysInfo" style="text-align: center; font-size: 14px; color: #555;"></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-container">
+                    <div class="chart-title">CPU 频率</div>
+                    <canvas id="cpuFrequencyChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">内存使用</div>
+                    <div id="memoryUsageInfo" style="text-align: center; font-size: 14px; color: #555;"></div>
+                    <canvas id="memoryChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-container">
+                    <div class="chart-title">CPU 利用率</div>
+                    <canvas id="cpuUsageChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">硬盘使用</div>
+                    <div id="diskInfo" class="disk-info"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="chart-container">
+                    <div class="chart-title">网络流量</div>
+                    <canvas id="networkTrafficChart1"></canvas>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-container">
+                    <div class="chart-title">网络流量</div>
+                    <canvas id="networkTrafficChart2"></canvas>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-container">
+                    <div class="chart-title">网络流量</div>
+                    <canvas id="networkTrafficChart3"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let cpuFrequencyChart, cpuUsageChart, memoryChart, networkTrafficChart1, networkTrafficChart2, networkTrafficChart3;
+
+        function fetchData() {
+            fetch('/api/device-info')
+                .then(response => response.json())
+                .then(data => {
+                    updateCharts(data);
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        function updateCharts(data) {
+            // 更新 CPU 频率折线图
+            if (cpuFrequencyChart.data.labels.length >= 30) {
+                cpuFrequencyChart.data.labels.shift();
+                cpuFrequencyChart.data.datasets[0].data.shift();
+            }
+            cpuFrequencyChart.data.labels.push('');
+            cpuFrequencyChart.data.datasets[0].data.push(data.cpuCurInfoData.freq);
+            cpuFrequencyChart.options.plugins.title.text = String(data.cpuCurInfoData.freq)+" GHz";
+            cpuFrequencyChart.options.scales.y.max = data.cpuFrequencyData.max;
+            cpuFrequencyChart.options.scales.y.min = data.cpuFrequencyData.min;
+            cpuFrequencyChart.update();
+
+            // 更新 CPU 利用率折线图
+            if (cpuUsageChart.data.labels.length >= 30) {
+                cpuUsageChart.data.labels.shift();
+                cpuUsageChart.data.datasets[0].data.shift();
+            }
+            cpuUsageChart.data.labels.push('');
+            cpuUsageChart.options.plugins.title.text = String(data.cpuCurInfoData.usage.toFixed(2))+" %";
+            cpuUsageChart.data.datasets[0].data.push(data.cpuCurInfoData.usage);
+            cpuUsageChart.update();
+
+            // 更新内存使用折线图
+            if (memoryChart.data.labels.length >= 130) {
+                memoryChart.data.labels.shift();
+                memoryChart.data.datasets[0].data.shift();
+            }
+            memoryChart.data.labels.push('');
+            memoryChart.data.datasets[0].data.push(data.memoryData.total - data.memoryData.available);
+            memoryChart.options.plugins.title.text = `${((data.memoryData.total - data.memoryData.available)/1e6).toFixed(3)} / ${(data.memoryData.total/1e6).toFixed(3)} GB`;
+            memoryChart.options.scales.y.max = data.memoryData.total;
+            memoryChart.update();
+
+            // 更新硬盘使用信息
+            const diskInfoElement = document.getElementById('diskInfo');
+            diskInfoElement.innerHTML = `
+                <p>总量: ${data.diskData.size} GB</p>
+                <p>使用: ${data.diskData.used} GB</p>
+                <p>空闲: ${data.diskData.available} GB</p>
+            `;
+
+            // 更新网络流量图表
+            networkTrafficChart1.data.datasets[0].data = [data.networkTraffic.receive / 1e6, data.networkTraffic.send / 1e6];
+            networkTrafficChart1.data.labels = ["接收 "+String((data.networkTraffic.receive / 1e6).toFixed(2))+` MB/s`, "发送 "+String((data.networkTraffic.send / 1e6).toFixed(2))+` MB/s`]
+            networkTrafficChart1.update();
+
+            networkTrafficChart2.data.datasets[0].data = [data.networkTraffic.receive / 1000 / 1000, data.networkTraffic.send / 1000 / 1000];
+            networkTrafficChart2.options.plugins.title.text = `Mbps`;
+            networkTrafficChart2.update();
+
+            networkTrafficChart3.data.datasets[0].data = [data.networkTraffic.receive / 1000 / 1000, data.networkTraffic.send / 1000 / 1000];
+            networkTrafficChart3.options.plugins.title.text = `Mbps`;
+            networkTrafficChart3.update();
+
+            // 更新系统信息
+            const sysInfoElement = document.getElementById('sysInfo');
+            sysInfoElement.innerHTML = `
+                <p>树莓派型号: ${data.sysInfoData.model}</p>
+                <p>系统时间: ${data.sysInfoData.systemTime}</p>
+                <p>系统版本: ${data.sysInfoData.osVersion}</p>
+                <p>内核版本: ${data.sysInfoData.kernelVersion}</p>
+            `;
+        }
+
+        // 初始化图表
+        const cpuFrequencyCtx = document.getElementById('cpuFrequencyChart').getContext('2d');
+        cpuFrequencyChart = new Chart(cpuFrequencyCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: 30 }, () => ''),
+                datasets: [{
+                    label: 'CPU 频率',
+                    data: Array(30).fill(0),
+                    borderColor: '#4caf50',
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'CPU 频率'
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 0,
+                        min: 0
+                    }
+                }
+            }
+        });
+
+        const cpuUsageCtx = document.getElementById('cpuUsageChart').getContext('2d');
+        cpuUsageChart = new Chart(cpuUsageCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: 30 }, () => ''),
+                datasets: [{
+                    label: 'CPU 利用率',
+                    data: Array(30).fill(0),
+                    borderColor: '#ff9800',
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'CPU 利用率'
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+        memoryChart = new Chart(memoryCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: 30 }, () => ''),
+                datasets: [{
+                    label: '内存使用',
+                    data: Array(30).fill(0),
+                    borderColor: '#f44336',
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '内存使用'
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 0
+                    }
+                }
+            }
+        });
+
+        const networkTrafficCtx1 = document.getElementById('networkTrafficChart1').getContext('2d');
+        networkTrafficChart1 = new Chart(networkTrafficCtx1, {
+            type: 'bar',
+            data: {
+                labels: ['接收','发送'],
+                datasets: [{
+                    data: [0, 0],
+                    backgroundColor: ['#2196f3', '#9c27b0']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'wlan0网络流量'
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        const networkTrafficCtx2 = document.getElementById('networkTrafficChart2').getContext('2d');
+        networkTrafficChart2 = new Chart(networkTrafficCtx2, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [0, 0],
+                    backgroundColor: ['#2196f3', '#9c27b0']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const networkTrafficCtx3 = document.getElementById('networkTrafficChart3').getContext('2d');
+        networkTrafficChart3 = new Chart(networkTrafficCtx3, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [0, 0],
+                    backgroundColor: ['#2196f3', '#9c27b0']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // 每秒刷新数据
+        setInterval(fetchData, 1000);
+    </script>
+</body>
+</html>

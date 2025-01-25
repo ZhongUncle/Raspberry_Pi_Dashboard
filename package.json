@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@xterm/xterm": "^5.5.0",
+    "chart.js": "^4.4.7"
+  }
+}

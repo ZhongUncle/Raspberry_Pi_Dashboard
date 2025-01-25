@@ -96,6 +96,7 @@ func GetDiskTemperature() int {
 	return 0
 }
 
+// 获取硬盘信息，返回值为（尺寸，已使用，可使用，温度）
 func GetDiskInfo() (int, int, int, int) {
 	size, used, avail := GetDiskUsage()
 	temp := GetDiskTemperature()
