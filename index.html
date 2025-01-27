@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>树莓派信息仪表盘</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -81,7 +82,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <script>
         let cpuFrequencyChart, cpuUsageChart, memoryChart, networkTrafficChart1, networkTrafficChart2, networkTrafficChart3;
 
@@ -105,7 +106,7 @@
             cpuFrequencyChart.options.plugins.title.text = String(data.cpuCurInfoData.freq)+" GHz";
             cpuFrequencyChart.options.scales.y.max = data.cpuFrequencyData.max;
             cpuFrequencyChart.options.scales.y.min = data.cpuFrequencyData.min;
-            cpuFrequencyChart.update();
+            cpuFrequencyChart.update("none");
 
             // 更新 CPU 利用率折线图
             if (cpuUsageChart.data.labels.length >= 30) {
@@ -115,18 +116,18 @@
             cpuUsageChart.data.labels.push('');
             cpuUsageChart.options.plugins.title.text = String(data.cpuCurInfoData.usage.toFixed(2))+" %";
             cpuUsageChart.data.datasets[0].data.push(data.cpuCurInfoData.usage);
-            cpuUsageChart.update();
+            cpuUsageChart.update("none");
 
             // 更新内存使用折线图
-            if (memoryChart.data.labels.length >= 130) {
+            if (memoryChart.data.labels.length >= 30) {
                 memoryChart.data.labels.shift();
                 memoryChart.data.datasets[0].data.shift();
             }
             memoryChart.data.labels.push('');
-            memoryChart.data.datasets[0].data.push(data.memoryData.total - data.memoryData.available);
+            memoryChart.data.datasets[0].data.push((data.memoryData.total - data.memoryData.available)/ 1e6);
             memoryChart.options.plugins.title.text = `${((data.memoryData.total - data.memoryData.available)/1e6).toFixed(3)} / ${(data.memoryData.total/1e6).toFixed(3)} GB`;
-            memoryChart.options.scales.y.max = data.memoryData.total;
-            memoryChart.update();
+            memoryChart.options.scales.y.max = data.memoryData.total/ 1e6;
+            memoryChart.update("none");
 
             // 更新硬盘使用信息
             const diskInfoElement = document.getElementById('diskInfo');
@@ -137,21 +138,38 @@
             `;
 
             // 更新网络流量图表
-            networkTrafficChart1.data.datasets[0].data = [data.networkTraffic.receive / 1e6, data.networkTraffic.send / 1e6];
-            networkTrafficChart1.data.labels = ["接收 "+String((data.networkTraffic.receive / 1e6).toFixed(2))+` MB/s`, "发送 "+String((data.networkTraffic.send / 1e6).toFixed(2))+` MB/s`]
-            networkTrafficChart1.update();
+            if (networkTrafficChart1.data.labels.length >= 30) {
+                networkTrafficChart1.data.labels.shift();
+                networkTrafficChart1.data.datasets[0].data.shift();
+            }
+            networkTrafficChart1.data.labels.push('');
+            networkTrafficChart1.options.plugins.title.text = String(data.cpuCurInfoData.usage.toFixed(2))+" %";
+            networkTrafficChart1.data.datasets[0].data.push(data.cpuCurInfoData.usage);
+            networkTrafficChart1.update("none");
+
+            // networkTrafficChart1.data.datasets[0].data = [data.networkTraffic.receive / 1e6, data.networkTraffic.send / 1e6];
+            // networkTrafficChart1.data.labels = ["接收 "+String((data.networkTraffic.receive / 1e6).toFixed(2))+` MB/s`, "发送 "+String((data.networkTraffic.send / 1e6).toFixed(2))+` MB/s`]
+            // networkTrafficChart1.update();
 
             networkTrafficChart2.data.datasets[0].data = [data.networkTraffic.receive / 1000 / 1000, data.networkTraffic.send / 1000 / 1000];
             networkTrafficChart2.options.plugins.title.text = `Mbps`;
-            networkTrafficChart2.update();
+            networkTrafficChart2.update("none");
 
             networkTrafficChart3.data.datasets[0].data = [data.networkTraffic.receive / 1000 / 1000, data.networkTraffic.send / 1000 / 1000];
             networkTrafficChart3.options.plugins.title.text = `Mbps`;
-            networkTrafficChart3.update();
+            networkTrafficChart3.update("none");
 
             // 更新系统信息
             const sysInfoElement = document.getElementById('sysInfo');
             sysInfoElement.innerHTML = `
+                <p>树莓派型号: ${data.sysInfoData.model}</p>
+                <p>系统时间: ${data.sysInfoData.systemTime}</p>
+                <p>系统版本: ${data.sysInfoData.osVersion}</p>
+                <p>内核版本: ${data.sysInfoData.kernelVersion}</p>
+                <p>树莓派型号: ${data.sysInfoData.model}</p>
+                <p>系统时间: ${data.sysInfoData.systemTime}</p>
+                <p>系统版本: ${data.sysInfoData.osVersion}</p>
+                <p>内核版本: ${data.sysInfoData.kernelVersion}</p>
                 <p>树莓派型号: ${data.sysInfoData.model}</p>
                 <p>系统时间: ${data.sysInfoData.systemTime}</p>
                 <p>系统版本: ${data.sysInfoData.osVersion}</p>
@@ -274,33 +292,78 @@
 
         const networkTrafficCtx1 = document.getElementById('networkTrafficChart1').getContext('2d');
         networkTrafficChart1 = new Chart(networkTrafficCtx1, {
-            type: 'bar',
+            type: 'line',
             data: {
-                labels: ['接收','发送'],
+                labels: Array.from({ length: 30 }, () => ''),
                 datasets: [{
-                    data: [0, 0],
-                    backgroundColor: ['#2196f3', '#9c27b0']
+                    label: '收',
+                    data: Array(30).fill(0),
+                    borderColor: '#2196f3',
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 0
+                },{
+                    label: '发',
+                    data: Array(30).fill(0),
+                    borderColor: '#9c27b0',
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 0
                 }]
             },
             options: {
                 responsive: true,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'wlan0网络流量'
-                    },
+                    // title: {
+                    //     display: true,
+                    //     text: '内存使用'
+                    // },
                     legend: {
                         display: false
                     }
                 },
                 scales: {
+                    x: {
+                        display: false
+                    },
                     y: {
                         beginAtZero: true,
-                        max: 100
+                        max: 0
                     }
                 }
             }
         });
+
+
+        // const networkTrafficCtx1 = document.getElementById('networkTrafficChart1').getContext('2d');
+        // networkTrafficChart1 = new Chart(networkTrafficCtx1, {
+        //     type: 'bar',
+        //     data: {
+        //         labels: ['接收','发送'],
+        //         datasets: [{
+        //             data: [0, 0],
+        //             backgroundColor: ['#2196f3', '#9c27b0']
+        //         }]
+        //     },
+        //     options: {
+        //         responsive: true,
+        //         plugins: {
+        //             title: {
+        //                 display: true,
+        //                 text: 'wlan0网络流量'
+        //             },
+        //             legend: {
+        //                 display: false
+        //             }
+        //         },
+        //         scales: {
+        //             y: {
+        //                 beginAtZero: true,
+        //                 max: 100
+        //             }
+        //         }
+        //     }
+        // });
 
         const networkTrafficCtx2 = document.getElementById('networkTrafficChart2').getContext('2d');
         networkTrafficChart2 = new Chart(networkTrafficCtx2, {

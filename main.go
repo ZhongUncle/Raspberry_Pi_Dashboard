@@ -47,8 +47,10 @@ type DiskData struct {
 }
 
 type NetTraffic struct {
-	Receive float64 `json:"receive"`
-	Send    float64 `json:"send"`
+	Eth0Receive  float64 `json:"eth0receive"`
+	Eth0Send     float64 `json:"eth0send"`
+	Wlan0Receive float64 `json:"wlan0receive"`
+	Wlan0Send    float64 `json:"wlan0send"`
 }
 
 type NetInfo struct {
@@ -71,7 +73,7 @@ func getDeviceInfo() DeviceInfo {
 	var cpuUsage, cpuTemp, cpuFreq float64
 	var memTotal, memAvailable float64
 	var diskSize, diskUsed, diskAvail, diskTemp int
-	var reci, send float64
+	var eth0reci, eth0send, wlan0reci, wlan0send float64
 	var hostname string
 	var networkinterface []netInfo.NetworkInterface
 	var model, osVersion, kernelVersion, systemTime string
@@ -104,7 +106,13 @@ func getDeviceInfo() DeviceInfo {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		reci, send = netInfo.GetNetTraffic("wlan0")
+		wlan0reci, wlan0send = netInfo.GetNetTraffic("wlan0")
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		eth0reci, eth0send = netInfo.GetNetTraffic("eth0")
 	}()
 
 	wg.Add(1)
@@ -143,8 +151,10 @@ func getDeviceInfo() DeviceInfo {
 			Temp:      diskTemp,
 		},
 		NetworkTraffic: NetTraffic{
-			Receive: reci,
-			Send:    send,
+			Eth0Receive:  eth0reci,
+			Eth0Send:     eth0send,
+			Wlan0Receive: wlan0reci,
+			Wlan0Send:    wlan0send,
 		},
 		NetworkInfo: NetInfo{
 			Hostname:   hostname,
