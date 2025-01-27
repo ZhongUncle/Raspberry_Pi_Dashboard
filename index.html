@@ -114,6 +114,15 @@
             cpuTemperatureChart.data.labels.push('');
             cpuTemperatureChart.data.datasets[0].data.push(data.cpuCurInfoData.temp);
             cpuTemperatureChart.options.plugins.title.text = "温度: " + String((data.cpuCurInfoData.temp).toFixed(2)) + " °C";
+
+            cpuTemperatureColor = "#4caf50"
+            if (data.cpuCurInfoData.temp >=45 && data.cpuCurInfoData.temp < 55) {
+                cpuTemperatureColor = "#ff9800"
+            } else if (data.cpuCurInfoData.temp >= 55) {
+                cpuTemperatureColor = "#4caf50"
+            }
+            cpuTemperatureChart.data.datasets[0].borderColor = cpuTemperatureColor
+            cpuTemperatureChart.data.datasets[0].backgroundColor = cpuTemperatureColor
             cpuTemperatureChart.update("none");
 
             // 更新 CPU 利用率折线图
@@ -139,19 +148,19 @@
 
             // 更新硬盘使用信息
             const diskInfoElement = document.getElementById('diskInfo');
-            diskUsageColor = "green"
-            disktempColor = "green"
             // 用颜色表示硬盘剩余可使用率
+            diskUsageColor = "#4caf50"    // 绿色
             if (data.diskData.available < 0.5*data.diskData.size && data.diskData.available >= 0.3*data.diskData.size ) {
-                diskUsageColor = "orange"
+                diskUsageColor = "#ff9800"  // 橙色
             } else if (data.diskData.available < 0.3*data.diskData.size) {
-                diskUsageColor = "red"
+                diskUsageColor = "#f44336"  // 红色
             }
             // 用颜色表示硬盘温度
+            disktempColor = "#4caf50"     // 绿色
             if (data.diskData.temp > 45 && data.diskData.temp < 55) {
-                disktempColor = "orange"
+                disktempColor = "#ff9800"    // 橙色
             } else if (data.diskData.temp >= 55) {
-                disktempColor = "red"
+                disktempColor = "#f44336"    // 红色
             }
             diskInfoElement.innerHTML = `
                 <pre><b>硬盘名称：</b>${data.diskData.modelname}\n<b>总量：\t</b>${data.diskData.size} GB\n<b>使用：\t</b>${data.diskData.used} GB\n<span style="color:${diskUsageColor}"><b>空闲</b>：\t${data.diskData.available} GB</span>\n<span style="color:${disktempColor}"><b>温度</b>：\t${data.diskData.temp} 摄氏度</span>\n</pre>
@@ -171,7 +180,7 @@
             networkTrafficChart1.data.datasets[0].label = "收："+String((data.networkTraffic.wlan0receive/1e3).toFixed(2))+" KB/s";
             networkTrafficChart1.data.datasets[1].label = "发："+String((data.networkTraffic.wlan0send/1e3).toFixed(2))+" KB/s";
             networkTrafficChart1.update("none");
-            //wth0接口
+            //eth0接口
             if (networkTrafficChart2.data.labels.length >= 30) {
                 networkTrafficChart2.data.labels.shift();
                 networkTrafficChart2.data.datasets[0].data.shift();
@@ -231,7 +240,7 @@
                 datasets: [{
                     label: 'CPU 利用率',
                     data: Array(30).fill(0),
-                    borderColor: '#ff9800',
+                    borderColor: '#4caf50',
                     borderWidth: 2,
                     fill: false,
                     pointRadius: 0
@@ -269,7 +278,7 @@
                 datasets: [{
                     label: '内存使用',
                     data: Array(30).fill(0),
-                    borderColor: '#f44336',
+                    borderColor: '#4caf50',
                     borderWidth: 2,
                     fill: false,
                     pointRadius: 0
