@@ -200,6 +200,15 @@
                 return "#4caf50"  // 绿色
             }
         };
+        const cpuUsageBackgroundColor = function (ctx) {
+            if (ctx.p0.parsed.y >= 45 && ctx.p0.parsed.y < 55) {
+                return "#ff980044"  // 橙色
+            } else if (ctx.p0.parsed.y >= 55) {
+                return "#f4433644"  // 红色
+            } else {
+                return "#4caf5044"  // 绿色
+            }
+        };
         const cpuUsageCtx = document.getElementById('cpuUsageChart').getContext('2d');
         cpuUsageChart = new Chart(cpuUsageCtx, {
             type: 'line',
@@ -211,13 +220,14 @@
                     borderColor: '#4caf50',
                     segment: {
                         borderColor: cpuUsageCtx => cpuUsageColor(cpuUsageCtx),
+                        backgroundColor: cpuUsageCtx => cpuUsageBackgroundColor(cpuUsageCtx),
                     },
                     borderWidth: 2,
-                    fill: false,
                     pointRadius: 0
                 }]
             },
             options: {
+                fill: true,
                 responsive: true,
                 plugins: {
                     title: {
@@ -250,6 +260,15 @@
                 return "#4caf50"  // 绿色
             }
         };
+        const cpuTempBackgroundColor = function (ctx) {
+            if (ctx.p0.parsed.y >= 45 && ctx.p0.parsed.y < 55) {
+                return "#ff980044"  // 橙色
+            } else if (ctx.p0.parsed.y >= 55) {
+                return "#f4433644"  // 红色
+            } else {
+                return "#4caf5044"  // 绿色
+            }
+        };
         const cpuTemperatureCtx = document.getElementById('cpuTemperatureChart').getContext('2d');
         cpuTemperatureChart = new Chart(cpuTemperatureCtx, {
             type: 'line',
@@ -261,13 +280,15 @@
                     borderColor: "#4caf50",
                     segment: {
                         borderColor: cpuTemperatureCtx => cpuTempColor(cpuTemperatureCtx),
+                        backgroundColor: cpuTemperatureCtx => cpuTempBackgroundColor(cpuTemperatureCtx),
                     },
                     borderWidth: 2,
-                    fill: false,
+                    
                     pointRadius: 0
                 }]
             },
             options: {
+                fill: true,
                 responsive: true,
                 plugins: {
                     title: {
@@ -292,12 +313,21 @@
 
         // 初始化内存使用图表
         const memoryColor = function (ctx) {
-            if (ctx.p0.parsed.y >= 0.5*(data.memoryData.total / 1e6) && ctx.p0.parsed.y < 0.8*(data.memoryData.total / 1e6)) {
+            if (ctx.p0.parsed.y >= 0.5*memoryChart.options.scales.y.max && ctx.p0.parsed.y < 0.8*memoryChart.options.scales.y.max) {
                 return "#ff9800"  // 橙色
-            } else if (ctx.p0.parsed.y >= 0.8*(data.memoryData.total / 1e6)) {
+            } else if (ctx.p0.parsed.y >= 0.8*memoryChart.options.scales.y.max) {
                 return "#f44336"  // 红色
             } else {
                 return "#4caf50"  // 绿色
+            }
+        };
+        const memoryBackgroundColor = function (ctx) {
+            if (ctx.p0.parsed.y >= 0.5*memoryChart.options.scales.y.max && ctx.p0.parsed.y < 0.8*memoryChart.options.scales.y.max) {
+                return "#ff980044"  // 橙色
+            } else if (ctx.p0.parsed.y >= 0.8*memoryChart.options.scales.y.max) {
+                return "#f4433644"  // 红色
+            } else {
+                return "#4caf5044"  // 绿色
             }
         };
         const memoryCtx = document.getElementById('memoryChart').getContext('2d');
@@ -309,15 +339,17 @@
                     label: '内存使用',
                     data: Array(30).fill(0),
                     borderColor: '#4caf50',
+                    backgroundColor: '#4caf50',
                     segment: {
-                        borderColor: memoryCtx => cpuUsageColor(memoryCtx),
+                        borderColor: memoryCtx => memoryColor(memoryCtx),
+                        backgroundColor: memoryCtx => memoryBackgroundColor(memoryCtx),
                     },
                     borderWidth: 2,
-                    fill: false,
                     pointRadius: 0
                 }]
             },
             options: {
+                fill: true,
                 responsive: true,
                 plugins: {
                     title: {
