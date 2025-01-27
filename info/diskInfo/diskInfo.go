@@ -10,7 +10,7 @@ import (
 )
 
 // 获取硬盘model名称
-func GetDiskDeviceModel() (string) {
+func GetDiskDeviceModel() string {
 	cmd := exec.Command("sudo", "smartctl", "-a", "/dev/sda")
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -34,6 +34,30 @@ func GetDiskDeviceModel() (string) {
 	}
 
 	return ""
+}
+
+// 获取文件系统格式
+func GetFileSystemType() string {
+	// 使用df命令获取文件系统信息
+	cmd := exec.Command("df", "-T", "/") // 假设获取根目录的文件系统类型
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return ""
+	}
+
+	// 解析输出
+	lines := strings.Split(string(output), "\n")
+	if len(lines) < 2 {
+		return ""
+	}
+	// 获取第二行（第一行是标题），并分割字段
+	fields := strings.Fields(lines[1])
+	if len(fields) < 2 {
+		return ""
+	}
+	fsType := fields[1]
+
+	return fsType
 }
 
 // 获取硬盘使用情况（返回值为Size、Used 和 Avail）
@@ -124,10 +148,11 @@ func GetDiskTemperature() int {
 }
 
 // 获取硬盘信息，返回值为（尺寸，已使用，可使用，温度）
-func GetDiskInfo() (string, int, int, int, int) {
+func GetDiskInfo() (string, string, int, int, int, int) {
 	name := GetDiskDeviceModel()
+	fs := GetFileSystemType()
 	size, used, avail := GetDiskUsage()
 	temp := GetDiskTemperature()
 
-	return name, size, used, avail, temp
+	return name, fs, size, used, avail, temp
 }

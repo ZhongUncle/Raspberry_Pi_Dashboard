@@ -159,7 +159,7 @@
                 disktempColor = "#f44336"    // 红色
             }
             diskInfoElement.innerHTML = `
-                <pre><b>硬盘名称：</b>${data.diskData.modelname}\n<b>总量：\t</b>${data.diskData.size} GB\n<b>使用：\t</b>${data.diskData.used} GB\n<span style="color:${diskUsageColor}"><b>空闲</b>：\t${data.diskData.available} GB</span>\n<span style="color:${disktempColor}"><b>温度</b>：\t${data.diskData.temp} 摄氏度</span>\n</pre>
+                <pre><b>硬盘名称：\t   </b>${data.diskData.modelname}\n<b>文件系统：\t   </b>${data.diskData.fsformat}\n<b>总量：\t\t   </b>${data.diskData.size} GB\n<b>使用：\t\t   </b>${data.diskData.used} GB\n<span style="color:${diskUsageColor}"><b>空闲</b>：\t\t   ${data.diskData.available} GB</span>\n<span style="color:${disktempColor}"><b>温度</b>：\t\t   ${data.diskData.temp} 摄氏度</span>\n</pre>
             `;
 
 
