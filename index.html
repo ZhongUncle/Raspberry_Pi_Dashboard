@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,16 +12,19 @@
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
         }
+
         .chart-container {
             background: white;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
+
         .chart-title {
             text-align: center;
             margin-bottom: 10px;
         }
+
         .disk-info {
             /* text-align: center; */
             font-size: 14px;
@@ -28,6 +32,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1 class="text-center my-4">树莓派信息仪表盘</h1>
@@ -57,7 +62,7 @@
             </div>
             <div class="col-md-4">
                 <div class="chart-container">
-                    <div class="chart-title">CPU 情况</div>
+                    <div class="chart-title">CPU 温度</div>
                     <canvas id="cpuTemperatureChart"></canvas>
                 </div>
                 <div class="chart-container">
@@ -72,7 +77,7 @@
         </div>
     </div>
 
-    
+
     <script>
         let cpuTemperatureChart, cpuUsageChart, memoryChart, networkTrafficChart1, networkTrafficChart2, networkTrafficChart3;
 
@@ -116,7 +121,7 @@
             cpuTemperatureChart.options.plugins.title.text = "温度: " + String((data.cpuCurInfoData.temp).toFixed(2)) + " °C";
 
             cpuTemperatureColor = "#4caf50"
-            if (data.cpuCurInfoData.temp >=45 && data.cpuCurInfoData.temp < 55) {
+            if (data.cpuCurInfoData.temp >= 45 && data.cpuCurInfoData.temp < 55) {
                 cpuTemperatureColor = "#ff9800"
             } else if (data.cpuCurInfoData.temp >= 55) {
                 cpuTemperatureColor = "#4caf50"
@@ -131,7 +136,7 @@
                 cpuUsageChart.data.datasets[0].data.shift();
             }
             cpuUsageChart.data.labels.push('');
-            cpuUsageChart.options.plugins.title.text = String(data.cpuCurInfoData.usage.toFixed(2))+" %";
+            cpuUsageChart.options.plugins.title.text = String(data.cpuCurInfoData.usage.toFixed(2)) + " %";
             cpuUsageChart.data.datasets[0].data.push(data.cpuCurInfoData.usage);
             cpuUsageChart.update("none");
 
@@ -141,18 +146,18 @@
                 memoryChart.data.datasets[0].data.shift();
             }
             memoryChart.data.labels.push('');
-            memoryChart.data.datasets[0].data.push((data.memoryData.total - data.memoryData.available)/ 1e6);
-            memoryChart.options.plugins.title.text = `${((data.memoryData.total - data.memoryData.available)/1e6).toFixed(3)} / ${(data.memoryData.total/1e6).toFixed(3)} GB`;
-            memoryChart.options.scales.y.max = data.memoryData.total/ 1e6;
+            memoryChart.data.datasets[0].data.push((data.memoryData.total - data.memoryData.available) / 1e6);
+            memoryChart.options.plugins.title.text = `${((data.memoryData.total - data.memoryData.available) / 1e6).toFixed(3)} / ${(data.memoryData.total / 1e6).toFixed(3)} GB`;
+            memoryChart.options.scales.y.max = data.memoryData.total / 1e6;
             memoryChart.update("none");
 
             // 更新硬盘使用信息
             const diskInfoElement = document.getElementById('diskInfo');
             // 用颜色表示硬盘剩余可使用率
             diskUsageColor = "#4caf50"    // 绿色
-            if (data.diskData.available < 0.5*data.diskData.size && data.diskData.available >= 0.3*data.diskData.size ) {
+            if (data.diskData.available < 0.5 * data.diskData.size && data.diskData.available >= 0.3 * data.diskData.size) {
                 diskUsageColor = "#ff9800"  // 橙色
-            } else if (data.diskData.available < 0.3*data.diskData.size) {
+            } else if (data.diskData.available < 0.3 * data.diskData.size) {
                 diskUsageColor = "#f44336"  // 红色
             }
             // 用颜色表示硬盘温度
@@ -165,7 +170,7 @@
             diskInfoElement.innerHTML = `
                 <pre><b>硬盘名称：</b>${data.diskData.modelname}\n<b>总量：\t</b>${data.diskData.size} GB\n<b>使用：\t</b>${data.diskData.used} GB\n<span style="color:${diskUsageColor}"><b>空闲</b>：\t${data.diskData.available} GB</span>\n<span style="color:${disktempColor}"><b>温度</b>：\t${data.diskData.temp} 摄氏度</span>\n</pre>
             `;
-            
+
 
             // 更新网络流量图表
             //wlan0接口
@@ -177,8 +182,8 @@
             networkTrafficChart1.data.labels.push('');
             networkTrafficChart1.data.datasets[0].data.push(data.networkTraffic.wlan0receive / 1e6);
             networkTrafficChart1.data.datasets[1].data.push(data.networkTraffic.wlan0send / 1e3);
-            networkTrafficChart1.data.datasets[0].label = "收："+String((data.networkTraffic.wlan0receive/1e3).toFixed(2))+" KB/s";
-            networkTrafficChart1.data.datasets[1].label = "发："+String((data.networkTraffic.wlan0send/1e3).toFixed(2))+" KB/s";
+            networkTrafficChart1.data.datasets[0].label = "收：" + String((data.networkTraffic.wlan0receive / 1e3).toFixed(2)) + " KB/s";
+            networkTrafficChart1.data.datasets[1].label = "发：" + String((data.networkTraffic.wlan0send / 1e3).toFixed(2)) + " KB/s";
             networkTrafficChart1.update("none");
             //eth0接口
             if (networkTrafficChart2.data.labels.length >= 30) {
@@ -189,8 +194,8 @@
             networkTrafficChart2.data.labels.push('');
             networkTrafficChart2.data.datasets[0].data.push(data.networkTraffic.eth0receive / 1e6);
             networkTrafficChart2.data.datasets[1].data.push(data.networkTraffic.eth0send / 1e3);
-            networkTrafficChart2.data.datasets[0].label = "收："+String((data.networkTraffic.eth0receive/1e3).toFixed(2))+" KB/s";
-            networkTrafficChart2.data.datasets[1].label = "发："+String((data.networkTraffic.eth0send/1e3).toFixed(2))+" KB/s";
+            networkTrafficChart2.data.datasets[0].label = "收：" + String((data.networkTraffic.eth0receive / 1e3).toFixed(2)) + " KB/s";
+            networkTrafficChart2.data.datasets[1].label = "发：" + String((data.networkTraffic.eth0send / 1e3).toFixed(2)) + " KB/s";
             networkTrafficChart2.update("none");
         }
 
@@ -233,6 +238,15 @@
         });
 
         // 初始化CPU温度图表
+        const cpuTempColor = function (ctx) {
+            if (ctx.p0.parsed.y >= 45 && ctx.p0.parsed.y < 55) {
+                return "#ff9800"  // 橙色
+            } else if (ctx.p0.parsed.y >= 55) {
+                return "#f44336"  // 红色
+            } else {
+                return "#4caf50"  // 绿色
+            }
+        };
         const cpuTemperatureCtx = document.getElementById('cpuTemperatureChart').getContext('2d');
         cpuTemperatureChart = new Chart(cpuTemperatureCtx, {
             type: 'line',
@@ -241,7 +255,10 @@
                 datasets: [{
                     label: 'CPU 温度',
                     data: Array(30).fill(0),
-                    borderColor: '#4caf50',
+                    borderColor: "#4caf50",
+                    segment: {
+                        borderColor: cpuTemperatureCtx => cpuTempColor(cpuTemperatureCtx),
+                    },
                     borderWidth: 2,
                     fill: false,
                     pointRadius: 0
@@ -321,7 +338,7 @@
                     borderWidth: 1,
                     fill: false,
                     pointRadius: 0
-                },{
+                }, {
                     label: '发',
                     data: Array(30).fill(0),
                     backgroundColor: '#9c27b0',
@@ -356,7 +373,7 @@
                     borderWidth: 1,
                     fill: false,
                     pointRadius: 0
-                },{
+                }, {
                     label: '发',
                     data: Array(30).fill(0),
                     backgroundColor: '#9c27b0',
@@ -382,4 +399,5 @@
         setInterval(fetchData, 1000);
     </script>
 </body>
+
 </html>
