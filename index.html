@@ -194,6 +194,44 @@
             networkTrafficChart2.update("none");
         }
 
+        // 初始化CPU利用率图表
+        const cpuUsageCtx = document.getElementById('cpuUsageChart').getContext('2d');
+        cpuUsageChart = new Chart(cpuUsageCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: 30 }, () => ''),
+                datasets: [{
+                    label: 'CPU 利用率',
+                    data: Array(30).fill(0),
+                    borderColor: '#4caf50',
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'CPU 利用率'
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
         // 初始化CPU温度图表
         const cpuTemperatureCtx = document.getElementById('cpuTemperatureChart').getContext('2d');
         cpuTemperatureChart = new Chart(cpuTemperatureCtx, {
@@ -227,43 +265,6 @@
                     y: {
                         beginAtZero: true,
                         max: 80,
-                    }
-                }
-            }
-        });
-        // 初始化CPU使用率图表
-        const cpuUsageCtx = document.getElementById('cpuUsageChart').getContext('2d');
-        cpuUsageChart = new Chart(cpuUsageCtx, {
-            type: 'line',
-            data: {
-                labels: Array.from({ length: 30 }, () => ''),
-                datasets: [{
-                    label: 'CPU 利用率',
-                    data: Array(30).fill(0),
-                    borderColor: '#4caf50',
-                    borderWidth: 2,
-                    fill: false,
-                    pointRadius: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'CPU 利用率'
-                    },
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    x: {
-                        display: false
-                    },
-                    y: {
-                        beginAtZero: true,
-                        max: 100
                     }
                 }
             }
