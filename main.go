@@ -40,10 +40,11 @@ type MemData struct {
 }
 
 type DiskData struct {
-	Size      int `json:"size"`
-	Used      int `json:"used"`
-	Available int `json:"available"`
-	Temp      int `json:"temp"`
+	ModelName string `json:"modelname"`
+	Size      int    `json:"size"`
+	Used      int    `json:"used"`
+	Available int    `json:"available"`
+	Temp      int    `json:"temp"`
 }
 
 type NetTraffic struct {
@@ -72,6 +73,7 @@ func getDeviceInfo() DeviceInfo {
 	var cpuMax, cpuMin float64
 	var cpuUsage, cpuTemp, cpuFreq float64
 	var memTotal, memAvailable float64
+	var diskModelName string
 	var diskSize, diskUsed, diskAvail, diskTemp int
 	var eth0reci, eth0send, wlan0reci, wlan0send float64
 	var hostname string
@@ -100,7 +102,7 @@ func getDeviceInfo() DeviceInfo {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		diskSize, diskUsed, diskAvail, diskTemp = diskInfo.GetDiskInfo()
+		diskModelName, diskSize, diskUsed, diskAvail, diskTemp = diskInfo.GetDiskInfo()
 	}()
 
 	wg.Add(1)
@@ -145,6 +147,7 @@ func getDeviceInfo() DeviceInfo {
 			Available: memAvailable,
 		},
 		DiskData: DiskData{
+			ModelName: diskModelName,
 			Size:      diskSize,
 			Used:      diskUsed,
 			Available: diskAvail,

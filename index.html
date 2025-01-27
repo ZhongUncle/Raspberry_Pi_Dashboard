@@ -21,11 +21,11 @@
             text-align: center;
             margin-bottom: 10px;
         }
-        /* .disk-info {
-            text-align: center;
+        .disk-info {
+            /* text-align: center; */
             font-size: 14px;
             color: #555;
-        } */
+        }
     </style>
 </head>
 <body>
@@ -42,34 +42,28 @@
             </div>
             <div class="col-md-4">
                 <div class="chart-container">
-                    <div class="chart-title">CPU 频率</div>
-                    <canvas id="cpuFrequencyChart"></canvas>
+                    <div class="chart-title">CPU 利用率</div>
+                    <canvas id="cpuUsageChart"></canvas>
                 </div>
                 <div class="chart-container">
                     <div class="chart-title">内存使用</div>
                     <div id="memoryUsageInfo" style="text-align: center; font-size: 14px; color: #555;"></div>
                     <canvas id="memoryChart"></canvas>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="chart-container">
-                    <div class="chart-title">CPU 利用率</div>
-                    <canvas id="cpuUsageChart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <div class="chart-title">硬盘使用</div>
-                    <div id="diskInfo" class="disk-info"></div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-4">
                 <div class="chart-container">
                     <div class="chart-title">wlan 0 网络流量</div>
                     <canvas id="networkTrafficChart1"></canvas>
                 </div>
             </div>
             <div class="col-md-4">
+                <div class="chart-container">
+                    <div class="chart-title">CPU 情况</div>
+                    <canvas id="cpuTemperatureChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">硬盘情况</div>
+                    <div id="diskInfo" class="disk-info"></div>
+                </div>
                 <div class="chart-container">
                     <div class="chart-title">eth 0 网络流量</div>
                     <canvas id="networkTrafficChart2"></canvas>
@@ -80,7 +74,7 @@
 
     
     <script>
-        let cpuFrequencyChart, cpuUsageChart, memoryChart, networkTrafficChart1, networkTrafficChart2, networkTrafficChart3;
+        let cpuTemperatureChart, cpuUsageChart, memoryChart, networkTrafficChart1, networkTrafficChart2, networkTrafficChart3;
 
         function fetchData() {
             fetch('/api/device-info')
@@ -92,17 +86,35 @@
         }
 
         function updateCharts(data) {
-            // 更新 CPU 频率折线图
-            if (cpuFrequencyChart.data.labels.length >= 30) {
-                cpuFrequencyChart.data.labels.shift();
-                cpuFrequencyChart.data.datasets[0].data.shift();
+            // 更新系统信息
+            const sysInfoElement = document.getElementById('sysInfo');
+            sysInfoElement.innerHTML = `
+                <p><b>树莓派型号:</b>&emsp;${data.sysInfoData.model}</p>
+                <p><b>系统时间:</b>&emsp;&emsp;${data.sysInfoData.systemTime}</p>
+                <p><b>系统版本:</b>&emsp;&emsp;${data.sysInfoData.osVersion}</p>
+                <p><b>内核版本:</b>&emsp;&emsp;${data.sysInfoData.kernelVersion}</p>
+            `;
+            // 更新网络信息
+            const netInfoElement = document.getElementById('netInfo');
+            netInfoElement.innerHTML = `
+                <p><b>主机名:</b>&emsp;${data.networkInfo.hostname}</p>
+                <p><b>接口名:&emsp;${data.networkInfo.interfaces[0].Name}</b></p>
+                <p>&emsp;<b>IP 地址:</b>&emsp;&emsp;${data.networkInfo.interfaces[0].IPAddress}</p>
+                <p>&emsp;<b>MAC 地址:</b>&emsp;${data.networkInfo.interfaces[0].MACAddress}</p>
+                <p><b>接口名:&emsp;${data.networkInfo.interfaces[1].Name}</b></p>
+                <p>&emsp;<b>IP 地址:</b>&emsp;&emsp;${data.networkInfo.interfaces[1].IPAddress}</p>
+                <p>&emsp;<b>MAC 地址:</b>&emsp;${data.networkInfo.interfaces[1].MACAddress}</p>
+            `;
+
+            // 更新 CPU 温度折线图
+            if (cpuTemperatureChart.data.labels.length >= 30) {
+                cpuTemperatureChart.data.labels.shift();
+                cpuTemperatureChart.data.datasets[0].data.shift();
             }
-            cpuFrequencyChart.data.labels.push('');
-            cpuFrequencyChart.data.datasets[0].data.push(data.cpuCurInfoData.freq);
-            cpuFrequencyChart.options.plugins.title.text = String(data.cpuCurInfoData.freq)+" GHz";
-            cpuFrequencyChart.options.scales.y.max = data.cpuFrequencyData.max;
-            cpuFrequencyChart.options.scales.y.min = data.cpuFrequencyData.min;
-            cpuFrequencyChart.update("none");
+            cpuTemperatureChart.data.labels.push('');
+            cpuTemperatureChart.data.datasets[0].data.push(data.cpuCurInfoData.temp);
+            cpuTemperatureChart.options.plugins.title.text = "温度: " + String((data.cpuCurInfoData.temp).toFixed(2)) + " °C";
+            cpuTemperatureChart.update("none");
 
             // 更新 CPU 利用率折线图
             if (cpuUsageChart.data.labels.length >= 30) {
@@ -127,63 +139,60 @@
 
             // 更新硬盘使用信息
             const diskInfoElement = document.getElementById('diskInfo');
+            diskUsageColor = "green"
+            disktempColor = "green"
+            // 用颜色表示硬盘剩余可使用率
+            if (data.diskData.available < 0.5*data.diskData.size && data.diskData.available >= 0.3*data.diskData.size ) {
+                diskUsageColor = "orange"
+            } else if (data.diskData.available < 0.3*data.diskData.size) {
+                diskUsageColor = "red"
+            }
+            // 用颜色表示硬盘温度
+            if (data.diskData.temp > 45 && data.diskData.temp < 55) {
+                disktempColor = "orange"
+            } else if (data.diskData.temp >= 55) {
+                disktempColor = "red"
+            }
             diskInfoElement.innerHTML = `
-                <pre><b>总量:\t</b> ${data.diskData.size} GB\n<b>使用:\t</b> ${data.diskData.used} GB\n<b>空闲:\t</b> ${data.diskData.available} GB\n<pre>
+                <pre><b>硬盘名称：</b>${data.diskData.modelname}\n<b>总量：\t</b>${data.diskData.size} GB\n<b>使用：\t</b>${data.diskData.used} GB\n<span style="color:${diskUsageColor}"><b>空闲</b>：\t${data.diskData.available} GB</span>\n<span style="color:${disktempColor}"><b>温度</b>：\t${data.diskData.temp} 摄氏度</span>\n</pre>
             `;
+            
 
             // 更新网络流量图表
+            //wlan0接口
             if (networkTrafficChart1.data.labels.length >= 30) {
                 networkTrafficChart1.data.labels.shift();
                 networkTrafficChart1.data.datasets[0].data.shift();
                 networkTrafficChart1.data.datasets[1].data.shift();
             }
             networkTrafficChart1.data.labels.push('');
-            networkTrafficChart1.options.plugins.title.text = String(data.networkTraffic.wlan0send.toFixed(2));
             networkTrafficChart1.data.datasets[0].data.push(data.networkTraffic.wlan0receive / 1e6);
-            networkTrafficChart1.data.datasets[1].data.push(data.networkTraffic.wlan0send / 1e6);
+            networkTrafficChart1.data.datasets[1].data.push(data.networkTraffic.wlan0send / 1e3);
+            networkTrafficChart1.data.datasets[0].label = "收："+String((data.networkTraffic.wlan0receive/1e3).toFixed(2))+" KB/s";
+            networkTrafficChart1.data.datasets[1].label = "发："+String((data.networkTraffic.wlan0send/1e3).toFixed(2))+" KB/s";
             networkTrafficChart1.update("none");
-
-
+            //wth0接口
             if (networkTrafficChart2.data.labels.length >= 30) {
                 networkTrafficChart2.data.labels.shift();
                 networkTrafficChart2.data.datasets[0].data.shift();
                 networkTrafficChart2.data.datasets[1].data.shift();
             }
             networkTrafficChart2.data.labels.push('');
-            networkTrafficChart2.options.plugins.title.text = String(data.networkTraffic.eth0send.toFixed(2));
             networkTrafficChart2.data.datasets[0].data.push(data.networkTraffic.eth0receive / 1e6);
-            networkTrafficChart2.data.datasets[1].data.push(data.networkTraffic.eth0send / 1e6);
+            networkTrafficChart2.data.datasets[1].data.push(data.networkTraffic.eth0send / 1e3);
+            networkTrafficChart2.data.datasets[0].label = "收："+String((data.networkTraffic.eth0receive/1e3).toFixed(2))+" KB/s";
+            networkTrafficChart2.data.datasets[1].label = "发："+String((data.networkTraffic.eth0send/1e3).toFixed(2))+" KB/s";
             networkTrafficChart2.update("none");
-
-            // 更新系统信息
-            const sysInfoElement = document.getElementById('sysInfo');
-            sysInfoElement.innerHTML = `
-                <p><b>树莓派型号:</b>&emsp;${data.sysInfoData.model}</p>
-                <p><b>系统时间:</b>&emsp;&emsp;${data.sysInfoData.systemTime}</p>
-                <p><b>系统版本:</b>&emsp;&emsp;${data.sysInfoData.osVersion}</p>
-                <p><b>内核版本:</b>&emsp;&emsp;${data.sysInfoData.kernelVersion}</p>
-            `;
-            // 更新网络信息
-            const netInfoElement = document.getElementById('netInfo');
-            netInfoElement.innerHTML = `
-                <p><b>主机名:</b>&emsp;${data.networkInfo.hostname}</p>
-                <p><b>接口名:</b>&emsp;${data.networkInfo.interfaces[0].Name}</b></p>
-                <p>&emsp;<b>IP 地址:</b>&emsp;&emsp;${data.networkInfo.interfaces[0].IPAddress}</p>
-                <p>&emsp;<b>MAC 地址:</b>&emsp;${data.networkInfo.interfaces[0].MACAddress}</p>
-                <p><b>接口名:&emsp;${data.networkInfo.interfaces[1].Name}</b></p>
-                <p>&emsp;<b>IP 地址:</b>&emsp;&emsp;${data.networkInfo.interfaces[1].IPAddress}</p>
-                <p>&emsp;<b>MAC 地址:</b>&emsp;${data.networkInfo.interfaces[1].MACAddress}</p>
-            `;
         }
 
-        // 初始化图表
-        const cpuFrequencyCtx = document.getElementById('cpuFrequencyChart').getContext('2d');
-        cpuFrequencyChart = new Chart(cpuFrequencyCtx, {
+        // 初始化CPU温度图表
+        const cpuTemperatureCtx = document.getElementById('cpuTemperatureChart').getContext('2d');
+        cpuTemperatureChart = new Chart(cpuTemperatureCtx, {
             type: 'line',
             data: {
                 labels: Array.from({ length: 30 }, () => ''),
                 datasets: [{
-                    label: 'CPU 频率',
+                    label: 'CPU 温度',
                     data: Array(30).fill(0),
                     borderColor: '#4caf50',
                     borderWidth: 2,
@@ -196,7 +205,7 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'CPU 频率'
+                        text: 'CPU 温度'
                     },
                     legend: {
                         display: false
@@ -208,13 +217,12 @@
                     },
                     y: {
                         beginAtZero: true,
-                        max: 0,
-                        min: 0
+                        max: 80,
                     }
                 }
             }
         });
-
+        // 初始化CPU使用率图表
         const cpuUsageCtx = document.getElementById('cpuUsageChart').getContext('2d');
         cpuUsageChart = new Chart(cpuUsageCtx, {
             type: 'line',
@@ -252,6 +260,7 @@
             }
         });
 
+        // 初始化内存使用图表
         const memoryCtx = document.getElementById('memoryChart').getContext('2d');
         memoryChart = new Chart(memoryCtx, {
             type: 'line',
@@ -288,7 +297,7 @@
                 }
             }
         });
-
+        //下面是网络速率的更新
         const networkTrafficCtx1 = document.getElementById('networkTrafficChart1').getContext('2d');
         networkTrafficChart1 = new Chart(networkTrafficCtx1, {
             type: 'line',

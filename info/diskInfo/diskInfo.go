@@ -9,6 +9,33 @@ import (
 	"strings"
 )
 
+// 获取硬盘model名称
+func GetDiskDeviceModel() (string) {
+	cmd := exec.Command("sudo", "smartctl", "-a", "/dev/sda")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return ""
+	}
+
+	// 从输出中提取 Device Model
+	scanner := bufio.NewScanner(&out)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "Device Model:") {
+			// 去掉 "Device Model:" 部分并返回结果
+			return strings.TrimSpace(strings.TrimPrefix(line, "Device Model:"))
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return ""
+	}
+
+	return ""
+}
+
 // 获取硬盘使用情况（返回值为Size、Used 和 Avail）
 func GetDiskUsage() (int, int, int) {
 	// 执行 df -h 命令
@@ -97,9 +124,10 @@ func GetDiskTemperature() int {
 }
 
 // 获取硬盘信息，返回值为（尺寸，已使用，可使用，温度）
-func GetDiskInfo() (int, int, int, int) {
+func GetDiskInfo() (string, int, int, int, int) {
+	name := GetDiskDeviceModel()
 	size, used, avail := GetDiskUsage()
 	temp := GetDiskTemperature()
 
-	return size, used, avail, temp
+	return name, size, used, avail, temp
 }
