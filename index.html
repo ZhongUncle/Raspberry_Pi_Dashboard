@@ -119,15 +119,6 @@
             cpuTemperatureChart.data.labels.push('');
             cpuTemperatureChart.data.datasets[0].data.push(data.cpuCurInfoData.temp);
             cpuTemperatureChart.options.plugins.title.text = "温度: " + String((data.cpuCurInfoData.temp).toFixed(2)) + " °C";
-
-            cpuTemperatureColor = "#4caf50"
-            if (data.cpuCurInfoData.temp >= 45 && data.cpuCurInfoData.temp < 55) {
-                cpuTemperatureColor = "#ff9800"
-            } else if (data.cpuCurInfoData.temp >= 55) {
-                cpuTemperatureColor = "#4caf50"
-            }
-            cpuTemperatureChart.data.datasets[0].borderColor = cpuTemperatureColor
-            cpuTemperatureChart.data.datasets[0].backgroundColor = cpuTemperatureColor
             cpuTemperatureChart.update("none");
 
             // 更新 CPU 利用率折线图
@@ -200,6 +191,15 @@
         }
 
         // 初始化CPU利用率图表
+        const cpuUsageColor = function (ctx) {
+            if (ctx.p0.parsed.y >= 45 && ctx.p0.parsed.y < 55) {
+                return "#ff9800"  // 橙色
+            } else if (ctx.p0.parsed.y >= 55) {
+                return "#f44336"  // 红色
+            } else {
+                return "#4caf50"  // 绿色
+            }
+        };
         const cpuUsageCtx = document.getElementById('cpuUsageChart').getContext('2d');
         cpuUsageChart = new Chart(cpuUsageCtx, {
             type: 'line',
@@ -209,6 +209,9 @@
                     label: 'CPU 利用率',
                     data: Array(30).fill(0),
                     borderColor: '#4caf50',
+                    segment: {
+                        borderColor: cpuUsageCtx => cpuUsageColor(cpuUsageCtx),
+                    },
                     borderWidth: 2,
                     fill: false,
                     pointRadius: 0
@@ -288,6 +291,15 @@
         });
 
         // 初始化内存使用图表
+        const memoryColor = function (ctx) {
+            if (ctx.p0.parsed.y >= 0.5*(data.memoryData.total / 1e6) && ctx.p0.parsed.y < 0.8*(data.memoryData.total / 1e6)) {
+                return "#ff9800"  // 橙色
+            } else if (ctx.p0.parsed.y >= 0.8*(data.memoryData.total / 1e6)) {
+                return "#f44336"  // 红色
+            } else {
+                return "#4caf50"  // 绿色
+            }
+        };
         const memoryCtx = document.getElementById('memoryChart').getContext('2d');
         memoryChart = new Chart(memoryCtx, {
             type: 'line',
@@ -297,6 +309,9 @@
                     label: '内存使用',
                     data: Array(30).fill(0),
                     borderColor: '#4caf50',
+                    segment: {
+                        borderColor: memoryCtx => cpuUsageColor(memoryCtx),
+                    },
                     borderWidth: 2,
                     fill: false,
                     pointRadius: 0
