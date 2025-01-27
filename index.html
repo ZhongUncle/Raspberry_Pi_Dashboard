@@ -21,11 +21,11 @@
             text-align: center;
             margin-bottom: 10px;
         }
-        .disk-info {
+        /* .disk-info {
             text-align: center;
             font-size: 14px;
             color: #555;
-        }
+        } */
     </style>
 </head>
 <body>
@@ -35,7 +35,9 @@
             <div class="col-md-4">
                 <div class="chart-container">
                     <div class="chart-title">系统信息</div>
-                    <div id="sysInfo" style="text-align: center; font-size: 14px; color: #555;"></div>
+                    <div id="sysInfo" style="text-align: left; font-size: 14px; color: #555;"></div>
+                    <div class="chart-title">网络信息</div>
+                    <div id="netInfo" style="text-align: left; font-size: 14px; color: #555;"></div>
                 </div>
             </div>
             <div class="col-md-4">
@@ -63,20 +65,14 @@
         <div class="row">
             <div class="col-md-4">
                 <div class="chart-container">
-                    <div class="chart-title">网络流量</div>
+                    <div class="chart-title">wlan 0 网络流量</div>
                     <canvas id="networkTrafficChart1"></canvas>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="chart-container">
-                    <div class="chart-title">网络流量</div>
+                    <div class="chart-title">eth 0 网络流量</div>
                     <canvas id="networkTrafficChart2"></canvas>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="chart-container">
-                    <div class="chart-title">网络流量</div>
-                    <canvas id="networkTrafficChart3"></canvas>
                 </div>
             </div>
         </div>
@@ -132,48 +128,51 @@
             // 更新硬盘使用信息
             const diskInfoElement = document.getElementById('diskInfo');
             diskInfoElement.innerHTML = `
-                <p>总量: ${data.diskData.size} GB</p>
-                <p>使用: ${data.diskData.used} GB</p>
-                <p>空闲: ${data.diskData.available} GB</p>
+                <pre><b>总量:\t</b> ${data.diskData.size} GB\n<b>使用:\t</b> ${data.diskData.used} GB\n<b>空闲:\t</b> ${data.diskData.available} GB\n<pre>
             `;
 
             // 更新网络流量图表
             if (networkTrafficChart1.data.labels.length >= 30) {
                 networkTrafficChart1.data.labels.shift();
                 networkTrafficChart1.data.datasets[0].data.shift();
+                networkTrafficChart1.data.datasets[1].data.shift();
             }
             networkTrafficChart1.data.labels.push('');
-            networkTrafficChart1.options.plugins.title.text = String(data.cpuCurInfoData.usage.toFixed(2))+" %";
-            networkTrafficChart1.data.datasets[0].data.push(data.cpuCurInfoData.usage);
+            networkTrafficChart1.options.plugins.title.text = String(data.networkTraffic.wlan0send.toFixed(2));
+            networkTrafficChart1.data.datasets[0].data.push(data.networkTraffic.wlan0receive / 1e6);
+            networkTrafficChart1.data.datasets[1].data.push(data.networkTraffic.wlan0send / 1e6);
             networkTrafficChart1.update("none");
 
-            // networkTrafficChart1.data.datasets[0].data = [data.networkTraffic.receive / 1e6, data.networkTraffic.send / 1e6];
-            // networkTrafficChart1.data.labels = ["接收 "+String((data.networkTraffic.receive / 1e6).toFixed(2))+` MB/s`, "发送 "+String((data.networkTraffic.send / 1e6).toFixed(2))+` MB/s`]
-            // networkTrafficChart1.update();
 
-            networkTrafficChart2.data.datasets[0].data = [data.networkTraffic.receive / 1000 / 1000, data.networkTraffic.send / 1000 / 1000];
-            networkTrafficChart2.options.plugins.title.text = `Mbps`;
+            if (networkTrafficChart2.data.labels.length >= 30) {
+                networkTrafficChart2.data.labels.shift();
+                networkTrafficChart2.data.datasets[0].data.shift();
+                networkTrafficChart2.data.datasets[1].data.shift();
+            }
+            networkTrafficChart2.data.labels.push('');
+            networkTrafficChart2.options.plugins.title.text = String(data.networkTraffic.eth0send.toFixed(2));
+            networkTrafficChart2.data.datasets[0].data.push(data.networkTraffic.eth0receive / 1e6);
+            networkTrafficChart2.data.datasets[1].data.push(data.networkTraffic.eth0send / 1e6);
             networkTrafficChart2.update("none");
-
-            networkTrafficChart3.data.datasets[0].data = [data.networkTraffic.receive / 1000 / 1000, data.networkTraffic.send / 1000 / 1000];
-            networkTrafficChart3.options.plugins.title.text = `Mbps`;
-            networkTrafficChart3.update("none");
 
             // 更新系统信息
             const sysInfoElement = document.getElementById('sysInfo');
             sysInfoElement.innerHTML = `
-                <p>树莓派型号: ${data.sysInfoData.model}</p>
-                <p>系统时间: ${data.sysInfoData.systemTime}</p>
-                <p>系统版本: ${data.sysInfoData.osVersion}</p>
-                <p>内核版本: ${data.sysInfoData.kernelVersion}</p>
-                <p>树莓派型号: ${data.sysInfoData.model}</p>
-                <p>系统时间: ${data.sysInfoData.systemTime}</p>
-                <p>系统版本: ${data.sysInfoData.osVersion}</p>
-                <p>内核版本: ${data.sysInfoData.kernelVersion}</p>
-                <p>树莓派型号: ${data.sysInfoData.model}</p>
-                <p>系统时间: ${data.sysInfoData.systemTime}</p>
-                <p>系统版本: ${data.sysInfoData.osVersion}</p>
-                <p>内核版本: ${data.sysInfoData.kernelVersion}</p>
+                <p><b>树莓派型号:</b>&emsp;${data.sysInfoData.model}</p>
+                <p><b>系统时间:</b>&emsp;&emsp;${data.sysInfoData.systemTime}</p>
+                <p><b>系统版本:</b>&emsp;&emsp;${data.sysInfoData.osVersion}</p>
+                <p><b>内核版本:</b>&emsp;&emsp;${data.sysInfoData.kernelVersion}</p>
+            `;
+            // 更新网络信息
+            const netInfoElement = document.getElementById('netInfo');
+            netInfoElement.innerHTML = `
+                <p><b>主机名:</b>&emsp;${data.networkInfo.hostname}</p>
+                <p><b>接口名:</b>&emsp;${data.networkInfo.interfaces[0].Name}</b></p>
+                <p>&emsp;<b>IP 地址:</b>&emsp;&emsp;${data.networkInfo.interfaces[0].IPAddress}</p>
+                <p>&emsp;<b>MAC 地址:</b>&emsp;${data.networkInfo.interfaces[0].MACAddress}</p>
+                <p><b>接口名:&emsp;${data.networkInfo.interfaces[1].Name}</b></p>
+                <p>&emsp;<b>IP 地址:</b>&emsp;&emsp;${data.networkInfo.interfaces[1].IPAddress}</p>
+                <p>&emsp;<b>MAC 地址:</b>&emsp;${data.networkInfo.interfaces[1].MACAddress}</p>
             `;
         }
 
@@ -298,118 +297,63 @@
                 datasets: [{
                     label: '收',
                     data: Array(30).fill(0),
+                    backgroundColor: '#2196f3',
                     borderColor: '#2196f3',
-                    borderWidth: 2,
+                    borderWidth: 1,
                     fill: false,
                     pointRadius: 0
                 },{
                     label: '发',
                     data: Array(30).fill(0),
+                    backgroundColor: '#9c27b0',
                     borderColor: '#9c27b0',
-                    borderWidth: 2,
+                    borderWidth: 1,
                     fill: false,
                     pointRadius: 0
                 }]
             },
             options: {
-                responsive: true,
-                plugins: {
-                    // title: {
-                    //     display: true,
-                    //     text: '内存使用'
-                    // },
-                    legend: {
-                        display: false
-                    }
-                },
                 scales: {
                     x: {
                         display: false
                     },
                     y: {
                         beginAtZero: true,
-                        max: 0
                     }
                 }
             }
         });
-
-
-        // const networkTrafficCtx1 = document.getElementById('networkTrafficChart1').getContext('2d');
-        // networkTrafficChart1 = new Chart(networkTrafficCtx1, {
-        //     type: 'bar',
-        //     data: {
-        //         labels: ['接收','发送'],
-        //         datasets: [{
-        //             data: [0, 0],
-        //             backgroundColor: ['#2196f3', '#9c27b0']
-        //         }]
-        //     },
-        //     options: {
-        //         responsive: true,
-        //         plugins: {
-        //             title: {
-        //                 display: true,
-        //                 text: 'wlan0网络流量'
-        //             },
-        //             legend: {
-        //                 display: false
-        //             }
-        //         },
-        //         scales: {
-        //             y: {
-        //                 beginAtZero: true,
-        //                 max: 100
-        //             }
-        //         }
-        //     }
-        // });
 
         const networkTrafficCtx2 = document.getElementById('networkTrafficChart2').getContext('2d');
         networkTrafficChart2 = new Chart(networkTrafficCtx2, {
-            type: 'bar',
+            type: 'line',
             data: {
-                labels: [],
+                labels: Array.from({ length: 30 }, () => ''),
                 datasets: [{
-                    data: [0, 0],
-                    backgroundColor: ['#2196f3', '#9c27b0']
+                    label: '收',
+                    data: Array(30).fill(0),
+                    backgroundColor: '#2196f3',
+                    borderColor: '#2196f3',
+                    borderWidth: 1,
+                    fill: false,
+                    pointRadius: 0
+                },{
+                    label: '发',
+                    data: Array(30).fill(0),
+                    backgroundColor: '#9c27b0',
+                    borderColor: '#9c27b0',
+                    borderWidth: 1,
+                    fill: false,
+                    pointRadius: 0
                 }]
             },
             options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
                 scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        const networkTrafficCtx3 = document.getElementById('networkTrafficChart3').getContext('2d');
-        networkTrafficChart3 = new Chart(networkTrafficCtx3, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [0, 0],
-                    backgroundColor: ['#2196f3', '#9c27b0']
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
+                    x: {
                         display: false
-                    }
-                },
-                scales: {
+                    },
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
                     }
                 }
             }
