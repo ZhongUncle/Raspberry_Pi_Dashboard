@@ -39,7 +39,7 @@ func GetDiskDeviceModel() string {
 // 获取文件系统格式
 func GetFileSystemType() string {
 	// 使用df命令获取文件系统信息
-	cmd := exec.Command("df", "-T", "/") // 假设获取根目录的文件系统类型
+	cmd := exec.Command("df", "-T", "/")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return ""

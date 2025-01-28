@@ -13,6 +13,7 @@ import (
 	"sync"
 )
 
+// 下面的结构体是存放信息，然后转换成JSON的
 type DeviceInfo struct {
 	CPUFrequencyData CPUMaxMin  `json:"cpuFrequencyData"`
 	CPUCurInfoData   CPUCur     `json:"cpuCurInfoData"`
@@ -67,6 +68,7 @@ type SysInfo struct {
 	SystemTime    string `json:"systemTime"`
 }
 
+// 获取信息的函数
 func getDeviceInfo() DeviceInfo {
 	var wg sync.WaitGroup
 
@@ -81,7 +83,7 @@ func getDeviceInfo() DeviceInfo {
 	var networkinterface []netInfo.NetworkInterface
 	var model, osVersion, kernelVersion, systemTime string
 
-	// 启动并发任务
+	// 下面并发获取信息，因为有些信息需要1秒的时间获取，如果不用并发的话时间太长了
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -133,6 +135,7 @@ func getDeviceInfo() DeviceInfo {
 	// 等待所有并发任务完成
 	wg.Wait()
 
+	//返回获取的信息
 	return DeviceInfo{
 		CPUFrequencyData: CPUMaxMin{
 			Max: cpuMax,
@@ -174,6 +177,7 @@ func getDeviceInfo() DeviceInfo {
 	}
 }
 
+// 把获取的信息转换成json
 func deviceInfoHandler(w http.ResponseWriter, r *http.Request) {
 	deviceInfo := getDeviceInfo()
 	w.Header().Set("Content-Type", "application/json")
@@ -249,12 +253,11 @@ func main() {
 	// 	fmt.Printf("Receive Bytes:\t%.2f MB/s\tTransmit Bytes:\t%.2f MB/s\n", reci, send)
 	// }
 
-	// 提供静态文件服务，包括index.html
-	// 提供静态文件服务
+	// 显示index.html静态页面
 	fs := http.FileServer(http.Dir("./"))
 	http.Handle("/", fs)
 
-	// 提供设备信息API
+	// 提供设备信息页面，这个页面会显示上面转换得到的JSON
 	http.HandleFunc("/api/device-info", deviceInfoHandler)
 
 	fmt.Println("Server started at http://<Raspberry-IP>:8080")
